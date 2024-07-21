@@ -15,10 +15,15 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
 
     uint256 private constant ORACLE_PAYMENT = (1 * LINK_DIVISIBILITY) / 10; // 0.1 * 10**18
     uint256 public currentPrice;
+    mapping(bytes32 => address) requestStorage;
 
     event RequestEthereumPriceFulfilled(
         bytes32 indexed requestId,
         uint256 indexed price
+    );
+
+    event EthereumPriceRequested(
+        bytes32 indexed requestId
     );
 
     /**
@@ -34,6 +39,8 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
         address _oracle,
         string memory _jobId
     ) public onlyOwner {
+
+
         Chainlink.Request memory req = _buildChainlinkRequest(
             stringToBytes32(_jobId),
             address(this),
@@ -41,7 +48,11 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
         );
         req._add("path", "USD");
         req._addInt("times", 100);
-        _sendChainlinkRequestTo(_oracle, req, ORACLE_PAYMENT);
+        
+        bytes32 requestID = _sendChainlinkRequestTo(_oracle, req, ORACLE_PAYMENT);
+        requestStorage[requestID] = msg.sender;
+
+        emit EthereumPriceRequested(requestID);
     }
 
 

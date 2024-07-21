@@ -6,7 +6,7 @@ const JOB_ID = "b1d42cd54a3a4200b1f725a68e48aad8"; // Replace with your Job ID
 const ORACLE_PAYMENT = ethers.parseUnits("1", 18); // Replace with your payment amount (in LINK)
 
 describe("Token Balance Check", function () {
-    let wallet, provider, deployer, LINK, operator, aTestnetConsumer;
+    let wallet, provider, deployer, LINK, operator, highLevelOracle;
 
     const localNet_Acc_1_Key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
@@ -40,22 +40,22 @@ describe("Token Balance Check", function () {
         console.log(`Operator deployed at: ${operator.target}`);
     });
 
-    it("should deploy ATestnetConsumer", async function () {
-        const ATestnetConsumer = await ethers.getContractFactory("ATestnetConsumer");
+    it("should deploy HighLevelOracle", async function () {
+        const HighLevelOracle = await ethers.getContractFactory("HighLevelOracle");
         const gasPrice = ethers.parseUnits('40', 'gwei'); // 40 Gwei
 
-        aTestnetConsumer = await ATestnetConsumer.deploy({
+        highLevelOracle = await HighLevelOracle.deploy({
             gasPrice: gasPrice
         });
 
-        console.log(`ATestnetConsumer deployed at: ${aTestnetConsumer.target}`);
+        console.log(`highLevelOracle deployed at: ${highLevelOracle.target}`);
     });
 
     it("should request Ethereum price", async function () {
 
-        await LINK.connect(wallet).transfer(aTestnetConsumer.target, ORACLE_PAYMENT);
+        await LINK.connect(wallet).transfer(highLevelOracle.target, ORACLE_PAYMENT);
 
-        const tx = await aTestnetConsumer.requestEthereumPrice(operator.target, JOB_ID);
+        const tx = await highLevelOracle.requestEthereumPrice(operator.target, JOB_ID);
         await tx.wait();
 
         console.log("Requested Ethereum price from Chainlink Oracle");
@@ -63,9 +63,9 @@ describe("Token Balance Check", function () {
 
     it("should get Last Ethereum price", async function () {
 
-        const lastEthereum = await aTestnetConsumer.currentPrice();
+        const lastEthereum = await highLevelOracle.currentPrice();
 
-        console.log("Last Ethereum price from aTestnetConsumer");
+        console.log("Last Ethereum price from highLevelOracle");
         console.log(lastEthereum)
     });
 });

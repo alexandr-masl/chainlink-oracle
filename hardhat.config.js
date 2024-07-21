@@ -19,14 +19,9 @@ module.exports = {
         // blockNumber: 5732504
       }
     },
-    localhost: {
-      url: 'http://127.0.0.1:8545'
-    },
-    node1: {
-      url: 'http://127.0.0.1:8545'
-    },
-    node2: {
-      url: 'http://127.0.0.1:8546',
+    sepolia: {
+      url: 'https://eth-sepolia.g.alchemy.com/v2/lPmyUbpUF1muSEHWM3NW0Q-Str5WA0te',
+      accounts: [process.env.PRIVATE_KEY]
     }
   }
 };

@@ -74,46 +74,6 @@
         "SafeCast"
       ]
     },
-    "/Users/green/code/chainlink-operator/contracts/ATestnetConsumer.sol": {
-      "lastModificationDate": 1721512698816,
-      "contentHash": "8b6fbcb64acaa7f774bdcd015a675447",
-      "sourceName": "contracts/ATestnetConsumer.sol",
-      "solcConfig": {
-        "version": "0.8.19",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "storageLayout"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          }
-        }
-      },
-      "imports": [
-        "@chainlink/contracts/src/v0.8/ChainlinkClient.sol",
-        "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol",
-        "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol"
-      ],
-      "versionPragmas": [
-        "0.8.19"
-      ],
-      "artifacts": [
-        "ATestnetConsumer"
-      ]
-    },
     "/Users/green/code/chainlink-operator/node_modules/@chainlink/contracts/src/v0.8/ChainlinkClient.sol": {
       "lastModificationDate": 1721511773705,
       "contentHash": "ef281ec488cb0fd6add23747ccfda87f",
@@ -867,10 +827,10 @@
         "SafeCast"
       ]
     },
-    "/Users/green/code/chainlink-operator/contracts/ATestnetConsumerWithExternalAdapter.sol": {
-      "lastModificationDate": 1721512859203,
-      "contentHash": "349214a242e4a55c40b07cf8149f8fff",
-      "sourceName": "contracts/ATestnetConsumerWithExternalAdapter.sol",
+    "/Users/green/code/chainlink-operator/contracts/HighLevelOracle.sol": {
+      "lastModificationDate": 1721570915119,
+      "contentHash": "7baf641540010632ee755fc4097c915a",
+      "sourceName": "contracts/HighLevelOracle.sol",
       "solcConfig": {
         "version": "0.8.19",
         "settings": {
@@ -904,7 +864,7 @@
         "0.8.19"
       ],
       "artifacts": [
-        "ATestnetConsumerWithExternalAdapter"
+        "HighLevelOracle"
       ]
     }
   }
