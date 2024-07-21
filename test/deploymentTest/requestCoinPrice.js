@@ -37,7 +37,7 @@ describe("Token Balance Check", function () {
 
     it("should call requestEthereumPrice of HighLevelOracleBalance", async function () {
         // Call the requestEthereumPrice function
-        const tx = await highLevelOracle.requestEthereumPrice();
+        const tx = await highLevelOracle.requestCoinPrice("ETH");
         const receipt = await tx.wait();
         console.log("Requested Ethereum price from Oracle");
     });

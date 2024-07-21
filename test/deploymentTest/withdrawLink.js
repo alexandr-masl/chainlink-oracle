@@ -3,7 +3,7 @@ const fs = require('fs');
 const highLevelOracleAbi = JSON.parse(fs.readFileSync('./artifacts/contracts/HighLevelOracle.sol/HighLevelOracle.json')).abi;
 const LINK_address = '0x779877A7B0D9E8603169DdbD7836e478b4624789';
 const OWNER = "0x01Ae8d6d0F137CF946e354eA707B698E8CaE6485";
-const highLevelOracleAddress = "0x1ab5F19D78330370D084867Aa37950dFa1e7096e"; 
+const highLevelOracleAddress = "0x1EEF12e36919DC318681f051F9528253cD67674A"; 
 
 
 describe("Token Balance Check", function () {
@@ -32,8 +32,6 @@ describe("Token Balance Check", function () {
     it("should get LINK balance BEFORE", async function () {
         const balance = await LINK.balanceOf(OWNER);
         console.log(`Deployer LINK Balance: ${ethers.formatUnits(balance, 18)}`);
-
-        // await LINK.connect(deployer).transfer(highLevelOracle.target, ORACLE_PAYMENT);
 
         const highLevelOracleBalance = await LINK.balanceOf(highLevelOracle.target);
         console.log(`HighLevelOracleBalance LINK Balance: ${ethers.formatUnits(highLevelOracleBalance, 18)}`);

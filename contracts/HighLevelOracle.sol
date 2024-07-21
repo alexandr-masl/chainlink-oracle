@@ -13,9 +13,17 @@ import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interface
 contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
+    enum RequestType {
+        None,
+        requestEthereumPrice,
+        requestCoinPrice
+    }
+
     uint256 private constant ORACLE_PAYMENT = (1 * LINK_DIVISIBILITY) / 10; // 0.1 * 10**18
     uint256 public currentPrice;
+    address oracle;
     mapping(bytes32 => address) requestStorage;
+    mapping(RequestType => string) requestTypeToJobID;
 
     event RequestEthereumPriceFulfilled(
         bytes32 indexed requestId,
@@ -26,30 +34,64 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
         bytes32 indexed requestId
     );
 
+    modifier chargeFee() {
+        LinkTokenInterface oracleToken = LinkTokenInterface(_chainlinkTokenAddress());
+        require(
+            oracleToken.transferFrom(msg.sender, address(this), ORACLE_PAYMENT),
+            "Unable to transfer fee"
+        );
+        _;
+    }
+
+
     /**
      *  Sepolia
      *@dev LINK address in Sepolia network: 0x779877A7B0D9E8603169DdbD7836e478b4624789
      * @dev Check https://docs.chain.link/docs/link-token-contracts/ for LINK address for the right network
      */
-    constructor() ConfirmedOwner(msg.sender) {
-        _setChainlinkToken(0x779877A7B0D9E8603169DdbD7836e478b4624789);
+    constructor(address _oracleToken, address _oracle) ConfirmedOwner(msg.sender) {
+        _setChainlinkToken(_oracleToken);
+        oracle = _oracle;
     }
 
-    function requestEthereumPrice(
-        address _oracle,
-        string memory _jobId
-    ) public onlyOwner {
+    function setRequestEthereumPriceJob(string memory _jobId) external onlyOwner{
+        require(bytes(_jobId).length > 0, "Job ID cannot be empty");
+        requestTypeToJobID[RequestType.requestEthereumPrice] = _jobId;
+    }
 
+    function setRequestCoinPriceJob(string memory _jobId) external onlyOwner{
+        require(bytes(_jobId).length > 0, "Job ID cannot be empty");
+        requestTypeToJobID[RequestType.requestCoinPrice] = _jobId;
+    }
+
+    function requestEthereumPrice() public chargeFee {
 
         Chainlink.Request memory req = _buildChainlinkRequest(
-            stringToBytes32(_jobId),
+            stringToBytes32(requestTypeToJobID[RequestType.requestEthereumPrice]),
             address(this),
             this.fulfillEthereumPrice.selector
         );
         req._add("path", "USD");
         req._addInt("times", 100);
-        
-        bytes32 requestID = _sendChainlinkRequestTo(_oracle, req, ORACLE_PAYMENT);
+
+        bytes32 requestID = _sendChainlinkRequestTo(oracle, req, ORACLE_PAYMENT);
+        requestStorage[requestID] = msg.sender;
+
+        emit EthereumPriceRequested(requestID);
+    }
+
+    function requestCoinPrice(string calldata _coin) public chargeFee {
+
+        Chainlink.Request memory req = _buildChainlinkRequest(
+            stringToBytes32(requestTypeToJobID[RequestType.requestCoinPrice]),
+            address(this),
+            this.fulfillEthereumPrice.selector
+        );
+        req._add("coin", _coin);
+        req._add("path", "USD");
+        req._addInt("times", 100);
+
+        bytes32 requestID = _sendChainlinkRequestTo(oracle, req, ORACLE_PAYMENT);
         requestStorage[requestID] = msg.sender;
 
         emit EthereumPriceRequested(requestID);
