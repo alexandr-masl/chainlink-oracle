@@ -10,8 +10,7 @@ const PORT = 8080; // Set the port directly
 // Handle GET requests at the root path
 app.get('/data/price', async (req, res) => {
     try {
-        // Simulate the response as a static object
-
+        
         const simulatedResponse = { USD: 777 };
 
         const timestamp = new Date().toISOString();
