@@ -14,17 +14,19 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
     uint256 private constant ORACLE_PAYMENT = (1 * LINK_DIVISIBILITY) / 10; // 0.1 * 10**18
-    uint256 public currentPrice;
+    uint256 public currentETHPrice;
     address oracle;
     mapping(uint => string) requestTypeToJobID;
 
     event RequestEthereumPriceFulfilled(
         bytes32 indexed requestId,
-        uint256 indexed price
+        uint256 indexed price,
+        string indexed coin
     );
 
     event EthereumPriceRequested(
-        bytes32 indexed requestId
+        bytes32 indexed requestId,
+        string indexed coin
     );
 
     modifier chargeFee() {
@@ -52,16 +54,45 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
         requestTypeToJobID[_requestType] = _jobId;
     }
 
-    function requestCoinPrice(string calldata _coin) public chargeFee {
+    function requestCryptocompareETHPrice() public chargeFee {
 
         uint requestType = 1;
         string memory jobId = requestTypeToJobID[requestType];
-        require(bytes(jobId).length > 0, "Job ID not set for requestCoinPrice");
+        require(bytes(jobId).length > 0, "Job ID not set for requestType");
 
         Chainlink.Request memory req = _buildChainlinkRequest(
             stringToBytes32(requestTypeToJobID[requestType]),
             address(this),
-            this.fulfillEthereumPrice.selector
+            this.fulfillCryptocompareCoinPrice.selector
+        );
+        req._add("coin", "ETH");
+        req._add("path", "USD");
+        req._addInt("times", 100);
+
+        bytes32 requestID = _sendChainlinkRequestTo(oracle, req, ORACLE_PAYMENT);
+
+        emit EthereumPriceRequested(requestID, "ETH");
+    }
+
+    function fulfillCryptocompareETHPrice(
+        bytes32 _requestId,
+        uint256 _price,
+        string memory _coin
+    ) public recordChainlinkFulfillment(_requestId) {
+        emit RequestEthereumPriceFulfilled(_requestId, _price, _coin);
+        currentETHPrice = _price;
+    }
+
+    function requestCryptocompareCoinPrice(string calldata _coin) public chargeFee {
+
+        uint requestType = 1;
+        string memory jobId = requestTypeToJobID[requestType];
+        require(bytes(jobId).length > 0, "Job ID not set for requestType");
+
+        Chainlink.Request memory req = _buildChainlinkRequest(
+            stringToBytes32(requestTypeToJobID[requestType]),
+            address(this),
+            this.fulfillCryptocompareCoinPrice.selector
         );
         req._add("coin", _coin);
         req._add("path", "USD");
@@ -69,17 +100,21 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
 
         bytes32 requestID = _sendChainlinkRequestTo(oracle, req, ORACLE_PAYMENT);
 
-        emit EthereumPriceRequested(requestID);
+        emit EthereumPriceRequested(requestID, _coin);
     }
 
-
-    function fulfillEthereumPrice(
+    function fulfillCryptocompareCoinPrice(
         bytes32 _requestId,
-        uint256 _price
+        uint256 _price,
+        string memory _coin
     ) public recordChainlinkFulfillment(_requestId) {
-        emit RequestEthereumPriceFulfilled(_requestId, _price);
-        currentPrice = _price;
+        emit RequestEthereumPriceFulfilled(_requestId, _price, _coin);
+        currentETHPrice = _price;
     }
+
+
+
+
 
     function getChainlinkToken() public view returns (address) {
         return _chainlinkTokenAddress();
