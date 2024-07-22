@@ -24,9 +24,9 @@ describe("Token Balance Check", function () {
 
     it("should call requestEthereumPrice of HighLevelOracleBalance", async function () {
 
-        const txSetRequestCoinPriceJob = await highLevelOracle.setMethodJobID(REQUEST_COIN_PRICE_JOB, "requestCoinPrice", {gasPrice, gasLimit});
-        const receiptSetRequestCoinPriceJob = await txSetRequestCoinPriceJob.wait();
+        const txSetJobIDToRequestType = await highLevelOracle.setJobIDToRequestType(REQUEST_COIN_PRICE_JOB, 1, { gasPrice, gasLimit });
+        await txSetJobIDToRequestType.wait();
 
-        console.log(colors.green(`setMethodJobID()`));
+        console.log(colors.green(`setJobIDToRequestType()`));
     });
 })

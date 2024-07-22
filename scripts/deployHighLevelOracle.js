@@ -16,10 +16,10 @@ async function main() {
 
     console.log(colors.white(`:::HighLevelOracle deployed at: ${highLevelOracle.target}`));
 
-    const txSetRequestCoinPriceJob = await highLevelOracle.setRequestCoinPriceJob(REQUEST_COIN_PRICE_JOB, { gasPrice, gasLimit });
-    const receiptSetRequestCoinPriceJob = await txSetRequestCoinPriceJob.wait();
+    const txSetJobIDToRequestType = await highLevelOracle.setJobIDToRequestType(REQUEST_COIN_PRICE_JOB, 1, { gasPrice, gasLimit });
+    await txSetJobIDToRequestType.wait();
 
-    console.log(colors.green(`setRequestCoinPriceJob()`));
+    console.log(colors.green(`setJobIDToRequestType()`));
     // console.log(receipt);
 }
 

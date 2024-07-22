@@ -47,38 +47,19 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
         oracle = _oracle;
     }
 
-    function setRequestEthereumPriceJob(string memory _jobId) external onlyOwner{
+    function setJobIDToRequestType(string memory _jobId, uint _requestType) external onlyOwner{
         require(bytes(_jobId).length > 0, "Job ID cannot be empty");
-        requestTypeToJobID[2] = _jobId;
-    }
-
-    function setRequestCoinPriceJob(string memory _jobId) external onlyOwner{
-        require(bytes(_jobId).length > 0, "Job ID cannot be empty");
-        requestTypeToJobID[1] = _jobId;
-    }
-
-    function requestEthereumPrice() public chargeFee {
-
-        Chainlink.Request memory req = _buildChainlinkRequest(
-            stringToBytes32(requestTypeToJobID[2]),
-            address(this),
-            this.fulfillEthereumPrice.selector
-        );
-        req._add("path", "USD");
-        req._addInt("times", 100);
-
-        bytes32 requestID = _sendChainlinkRequestTo(oracle, req, ORACLE_PAYMENT);
-
-        emit EthereumPriceRequested(requestID);
+        requestTypeToJobID[_requestType] = _jobId;
     }
 
     function requestCoinPrice(string calldata _coin) public chargeFee {
 
-        string memory jobId = requestTypeToJobID[1];
+        uint requestType = 1;
+        string memory jobId = requestTypeToJobID[requestType];
         require(bytes(jobId).length > 0, "Job ID not set for requestCoinPrice");
 
         Chainlink.Request memory req = _buildChainlinkRequest(
-            stringToBytes32(requestTypeToJobID[1]),
+            stringToBytes32(requestTypeToJobID[requestType]),
             address(this),
             this.fulfillEthereumPrice.selector
         );
