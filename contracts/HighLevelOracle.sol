@@ -13,17 +13,10 @@ import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interface
 contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
-    enum RequestType {
-        None,
-        requestEthereumPrice,
-        requestCoinPrice
-    }
-
     uint256 private constant ORACLE_PAYMENT = (1 * LINK_DIVISIBILITY) / 10; // 0.1 * 10**18
     uint256 public currentPrice;
     address oracle;
-    mapping(bytes32 => address) requestStorage;
-    mapping(RequestType => string) requestTypeToJobID;
+    mapping(uint => string) requestTypeToJobID;
 
     event RequestEthereumPriceFulfilled(
         bytes32 indexed requestId,
@@ -56,18 +49,18 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
 
     function setRequestEthereumPriceJob(string memory _jobId) external onlyOwner{
         require(bytes(_jobId).length > 0, "Job ID cannot be empty");
-        requestTypeToJobID[RequestType.requestEthereumPrice] = _jobId;
+        requestTypeToJobID[2] = _jobId;
     }
 
     function setRequestCoinPriceJob(string memory _jobId) external onlyOwner{
         require(bytes(_jobId).length > 0, "Job ID cannot be empty");
-        requestTypeToJobID[RequestType.requestCoinPrice] = _jobId;
+        requestTypeToJobID[1] = _jobId;
     }
 
     function requestEthereumPrice() public chargeFee {
 
         Chainlink.Request memory req = _buildChainlinkRequest(
-            stringToBytes32(requestTypeToJobID[RequestType.requestEthereumPrice]),
+            stringToBytes32(requestTypeToJobID[2]),
             address(this),
             this.fulfillEthereumPrice.selector
         );
@@ -75,15 +68,17 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
         req._addInt("times", 100);
 
         bytes32 requestID = _sendChainlinkRequestTo(oracle, req, ORACLE_PAYMENT);
-        requestStorage[requestID] = msg.sender;
 
         emit EthereumPriceRequested(requestID);
     }
 
     function requestCoinPrice(string calldata _coin) public chargeFee {
 
+        string memory jobId = requestTypeToJobID[1];
+        require(bytes(jobId).length > 0, "Job ID not set for requestCoinPrice");
+
         Chainlink.Request memory req = _buildChainlinkRequest(
-            stringToBytes32(requestTypeToJobID[RequestType.requestCoinPrice]),
+            stringToBytes32(requestTypeToJobID[1]),
             address(this),
             this.fulfillEthereumPrice.selector
         );
@@ -92,7 +87,6 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
         req._addInt("times", 100);
 
         bytes32 requestID = _sendChainlinkRequestTo(oracle, req, ORACLE_PAYMENT);
-        requestStorage[requestID] = msg.sender;
 
         emit EthereumPriceRequested(requestID);
     }
