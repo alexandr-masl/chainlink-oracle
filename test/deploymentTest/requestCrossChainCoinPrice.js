@@ -1,12 +1,12 @@
 const { ethers } = require("hardhat");
 const fs = require('fs');
-const highLevelOracleAbi = JSON.parse(fs.readFileSync('./artifacts/contracts/HighLevelOracle.sol/HighLevelOracle.json')).abi;
-const {LINK_address, highLevelOracleAddress} = require('../../settings.json')
+const highLevelOracleAbi = JSON.parse(fs.readFileSync('./artifacts/contracts/PriceOracle.sol/PriceOracle.json')).abi;
+const {LINK_address, oracleAddress} = require('../../settings.json')
 const ORACLE_PAYMENT = ethers.parseUnits("1", 18); // Replace with your payment amount (in LINK)
 
 
 describe("Token Balance Check", function () {
-    let provider, deployer, LINK, highLevelOracle;
+    let provider, deployer, LINK, oracle;
     this.timeout(60000); // 60 seconds
 
     before(async function () {
@@ -21,18 +21,18 @@ describe("Token Balance Check", function () {
             "function transfer(address recipient, uint256 amount) external returns (bool)"
         ], LINK_address);
 
-        highLevelOracle = new ethers.Contract(highLevelOracleAddress, highLevelOracleAbi, deployer);
+        oracle = new ethers.Contract(oracleAddress, highLevelOracleAbi, deployer);
     });
 
-    it("should check HighLevelOracle", async function () {
-        console.log(`HighLevelOracle at: ${highLevelOracle.target}`);
+    it("should check PriceOracle", async function () {
+        console.log(`PriceOracle at: ${oracle.target}`);
     });
 
-    it("should approve LINK tokens for HighLevelOracle contract", async function () {
-        // Approve the HighLevelOracle contract to spend LINK tokens
-        const tx = await LINK.connect(deployer).approve(highLevelOracle.target, ORACLE_PAYMENT);
+    it("should approve LINK tokens for PriceOracle contract", async function () {
+        // Approve the PriceOracle contract to spend LINK tokens
+        const tx = await LINK.connect(deployer).approve(oracle.target, ORACLE_PAYMENT);
         await tx.wait();
-        console.log(`Approved HighLevelOracle to spend ${ethers.formatUnits(ORACLE_PAYMENT, 18)} LINK tokens`);
+        console.log(`Approved PriceOracle to spend ${ethers.formatUnits(ORACLE_PAYMENT, 18)} LINK tokens`);
     });
 
     it("should call requestCrossChainCoinPrice", async function () {
@@ -53,8 +53,8 @@ describe("Token Balance Check", function () {
         ];
 
         // Call the requestCrossChainCoinPrice function
-        const tx = await highLevelOracle.requestCrossChainCoinPrice(crossChainPriceRequest);
+        const tx = await oracle.requestCrossChainCoinPrice(crossChainPriceRequest);
         const receipt = await tx.wait();
-        console.log("Requested Cross Chain Coin Price price from Oracle");
+        console.log("Requested Cross Chain Coin Price price from PriceOracle");
     });
 })
