@@ -13,26 +13,44 @@ import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interface
 contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
-    uint256 private constant ORACLE_PAYMENT = (1 * LINK_DIVISIBILITY) / 10; // 0.1 * 10**18
-    uint256 public currentETHPrice;
+    struct ChainlinkCrossChainCoinPriceRequest {
+        string rpcUrl;
+        string priceFeedContract;
+    }
+
+    uint256 private requestPrice = (1 * LINK_DIVISIBILITY) / 10; // 0.1 * 10**18
     address oracle;
     mapping(uint => string) requestTypeToJobID;
 
-    event RequestEthereumPriceFulfilled(
+    event CryptocompareCoinPriceRequested(
         bytes32 indexed requestId,
-        uint256 indexed price,
-        string indexed coin
+        string coin
     );
 
-    event EthereumPriceRequested(
+    event RequestEthereumPriceFulfilled(
         bytes32 indexed requestId,
-        string indexed coin
+        uint256 price,
+        string coin
+    );
+
+    event CrossChainPriceRequested(
+        bytes32 indexed requestId
+    );
+
+    event RequestCrossChainPriceFulfilled(
+        bytes32 indexed requestId,
+        uint256 chain,
+        uint256 price
+    );
+
+    event CanceledRequest(
+        bytes32 indexed requestId
     );
 
     modifier chargeFee() {
         LinkTokenInterface oracleToken = LinkTokenInterface(_chainlinkTokenAddress());
         require(
-            oracleToken.transferFrom(msg.sender, address(this), ORACLE_PAYMENT),
+            oracleToken.transferFrom(msg.sender, address(this), requestPrice),
             "Unable to transfer fee"
         );
         _;
@@ -69,18 +87,9 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
         req._add("path", "USD");
         req._addInt("times", 100);
 
-        bytes32 requestID = _sendChainlinkRequestTo(oracle, req, ORACLE_PAYMENT);
+        bytes32 requestID = _sendChainlinkRequestTo(oracle, req, requestPrice);
 
-        emit EthereumPriceRequested(requestID, "ETH");
-    }
-
-    function fulfillCryptocompareETHPrice(
-        bytes32 _requestId,
-        uint256 _price,
-        string memory _coin
-    ) public recordChainlinkFulfillment(_requestId) {
-        emit RequestEthereumPriceFulfilled(_requestId, _price, _coin);
-        currentETHPrice = _price;
+        emit CryptocompareCoinPriceRequested(requestID, "ETH");
     }
 
     function requestCryptocompareCoinPrice(string calldata _coin) public chargeFee {
@@ -98,9 +107,9 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
         req._add("path", "USD");
         req._addInt("times", 100);
 
-        bytes32 requestID = _sendChainlinkRequestTo(oracle, req, ORACLE_PAYMENT);
+        bytes32 requestID = _sendChainlinkRequestTo(oracle, req, requestPrice);
 
-        emit EthereumPriceRequested(requestID, _coin);
+        emit CryptocompareCoinPriceRequested(requestID, _coin);
     }
 
     function fulfillCryptocompareCoinPrice(
@@ -109,23 +118,47 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
         string memory _coin
     ) public recordChainlinkFulfillment(_requestId) {
         emit RequestEthereumPriceFulfilled(_requestId, _price, _coin);
-        currentETHPrice = _price;
     }
 
+    function requestCrossChainCoinPrice(ChainlinkCrossChainCoinPriceRequest[3] calldata _request) public chargeFee {
 
+        uint requestType = 2;
+        string memory jobId = requestTypeToJobID[requestType];
+        require(bytes(jobId).length > 0, "Job ID not set for requestType");
 
-
-
-    function getChainlinkToken() public view returns (address) {
-        return _chainlinkTokenAddress();
-    }
-
-    function withdrawLink() public onlyOwner {
-        LinkTokenInterface link = LinkTokenInterface(_chainlinkTokenAddress());
-        require(
-            link.transfer(msg.sender, link.balanceOf(address(this))),
-            "Unable to transfer"
+        Chainlink.Request memory req = _buildChainlinkRequest(
+            stringToBytes32(requestTypeToJobID[requestType]),
+            address(this),
+            this.fulfillCrossChainCoinPrice.selector
         );
+
+        req._add("chain1RPC", _request[0].rpcUrl);
+        req._add("chain1Contract", _request[0].priceFeedContract);
+
+        req._add("chain2RPC", _request[1].rpcUrl);
+        req._add("chain2Contract", _request[1].priceFeedContract);
+
+        req._add("chain3RPC", _request[2].rpcUrl);
+        req._add("chain3Contract", _request[2].priceFeedContract);
+
+        bytes32 requestID = _sendChainlinkRequestTo(oracle, req, requestPrice);
+
+        emit CrossChainPriceRequested(requestID);
+    }
+
+    function fulfillCrossChainCoinPrice(
+        bytes32 _requestId,
+        uint256[3] calldata _prices,
+        uint256[3] calldata _chains
+    ) public recordChainlinkFulfillment(_requestId) {
+
+        for (uint256 i = 0; i < _prices.length; i++) {
+            emit RequestCrossChainPriceFulfilled(_requestId, _chains[i], _prices[i]);
+        }
+    }
+
+    function getOracleToken() public view returns (address) {
+        return _chainlinkTokenAddress();
     }
 
     function cancelRequest(
@@ -140,6 +173,7 @@ contract HighLevelOracle is ChainlinkClient, ConfirmedOwner {
             _callbackFunctionId,
             _expiration
         );
+        emit CanceledRequest(_requestId);
     }
 
     function stringToBytes32(

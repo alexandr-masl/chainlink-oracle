@@ -35,10 +35,26 @@ describe("Token Balance Check", function () {
         console.log(`Approved HighLevelOracle to spend ${ethers.formatUnits(ORACLE_PAYMENT, 18)} LINK tokens`);
     });
 
-    it("should call requestEthereumPrice of HighLevelOracleBalance", async function () {
-        // Call the requestEthereumPrice function
-        const tx = await highLevelOracle.requestEthereumPrice();
+    it("should call requestCrossChainCoinPrice", async function () {
+
+        // Define the cross-chain price request
+        const crossChainPriceRequest = [
+            { 
+                rpcUrl: "https://bsc-dataseed.binance.org/", priceFeedContract:"0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE" 
+            },
+            { 
+                rpcUrl: "https://eth-mainnet.g.alchemy.com/v2/lPmyUbpUF1muSEHWM3NW0Q-Str5WA0te", 
+                priceFeedContract: "0x14e613AC84a31f709eadbdF89C6CC390fDc9540A" 
+            },
+            { 
+                rpcUrl: "", 
+                priceFeedContract: "" 
+            }
+        ];
+
+        // Call the requestCrossChainCoinPrice function
+        const tx = await highLevelOracle.requestCrossChainCoinPrice(crossChainPriceRequest);
         const receipt = await tx.wait();
-        console.log("Requested Ethereum price from Oracle");
+        console.log("Requested Cross Chain Coin Price price from Oracle");
     });
 })

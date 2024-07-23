@@ -1,5 +1,5 @@
 const { ethers } = require("hardhat");
-const {LINK_address, operatorAddress, JOB_ID, REQUEST_COIN_PRICE_JOB} = require("../settings.json");
+const {LINK_address, operatorAddress, REQUEST_CROSS_CHAIN_COIN_PRICE_JOB, REQUEST_COIN_PRICE_JOB} = require("../settings.json");
 const colors = require("colors");
 
 async function main() {
@@ -19,8 +19,13 @@ async function main() {
     const txSetJobIDToRequestType = await highLevelOracle.setJobIDToRequestType(REQUEST_COIN_PRICE_JOB, 1, { gasPrice, gasLimit });
     await txSetJobIDToRequestType.wait();
 
-    console.log(colors.green(`setJobIDToRequestType()`));
+    console.log(colors.green(`set REQUEST_COIN_PRICE_JOB()`));
     // console.log(receipt);
+
+    const txSetJobIDToRequestType_CrossChainPrice = await highLevelOracle.setJobIDToRequestType(REQUEST_CROSS_CHAIN_COIN_PRICE_JOB, 2, { gasPrice, gasLimit });
+    await txSetJobIDToRequestType_CrossChainPrice.wait();
+
+    console.log(colors.green(`set REQUEST_CROSS_CHAIN_COIN_PRICE_JOB()`));
 }
 
 // Execute the deployment script
