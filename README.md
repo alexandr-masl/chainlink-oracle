@@ -6,7 +6,8 @@ For further steps, any needed logic could be implemented to serve any oracle pur
 
 ## Token Implementation Details
 
-For simplicity and demonstration purposes, this project utilizes a Chainlink token on the Sepolia network. However, it can also be implemented with the project's custom token.
+This project utilizes a Chainlink token on the Sepolia network. 
+For blockchain networks that do not support the LINK token, a Custom token may be implemented instead.
 
 ### Custom Token Requirements
 
