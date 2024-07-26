@@ -9,22 +9,16 @@ async function main() {
     // Get the contract factory for PriceOracle
     const PriceOracle = await ethers.getContractFactory("PriceOracle");
 
-    console.log(colors.green(":::Deploying.."))
-
     // Deploy the contract
     const oracle = await PriceOracle.deploy(LINK_address, operatorAddress, { gasPrice });
-
     console.log(colors.white(`:::PriceOracle deployed at: ${oracle.target}`));
 
     const txSetJobIDToRequestType = await oracle.setJobIDToRequestType(REQUEST_COIN_PRICE_JOB, 1, { gasPrice, gasLimit });
     await txSetJobIDToRequestType.wait();
-
     console.log(colors.green(`set REQUEST_COIN_PRICE_JOB()`));
-    // console.log(receipt);
 
     const txSetJobIDToRequestType_CrossChainPrice = await oracle.setJobIDToRequestType(REQUEST_CROSS_CHAIN_COIN_PRICE_JOB, 2, { gasPrice, gasLimit });
     await txSetJobIDToRequestType_CrossChainPrice.wait();
-
     console.log(colors.green(`set REQUEST_CROSS_CHAIN_COIN_PRICE_JOB()`));
 }
 

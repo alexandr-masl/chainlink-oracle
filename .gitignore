@@ -1,1 +1,11 @@
-node_modules
+node_modules/
+artifacts/
+cache/
+test/
+hardhat.config.js
+.env
+commands.md
+.vscode
+settings.json
+yarn.lock
+

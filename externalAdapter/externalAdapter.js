@@ -4,11 +4,10 @@ const bodyParser = require('body-parser');
 const colors = require("colors");
 const axios = require('axios');
 require('dotenv').config();
-
 const app = express();
 app.use(bodyParser.json());
+const PORT = 8080;
 
-const PORT = 8080; // Set the port directly
 
 app.post('/data/log', async(req, res) => {
     try {
@@ -18,9 +17,6 @@ app.post('/data/log', async(req, res) => {
 
         const data = req.body;
         console.log(data);
-
-        const coin = (data.coin).toUpperCase();
-        console.log(colors.white(`:::::::::Coin: ${coin}`))
 
         try{
             const apiUrl = `https://min-api.cryptocompare.com/data/price?fsym=${coin}&tsyms=USD`;
