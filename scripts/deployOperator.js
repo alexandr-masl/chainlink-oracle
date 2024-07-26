@@ -1,8 +1,7 @@
 const { ethers } = require("hardhat");
+const {LINK_address, OWNER} = require("../settings.json");
 
 async function main() {
-    const LINK_address = '0x779877A7B0D9E8603169DdbD7836e478b4624789';
-    const OWNER = "0x01Ae8d6d0F137CF946e354eA707B698E8CaE6485";
     const gasPrice = ethers.parseUnits('40', 'gwei'); // 40 Gwei
 
     // Get the contract factory for Operator
